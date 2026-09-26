@@ -1,0 +1,23 @@
+<!--  Display the edit page and the information for the selected book. -->
+<h1>Edit Book</h1>
+<p>Book Title: <%= book.title %></p>
+
+<!-- Provide a form for editing the selected book's personal tracking information.  -->
+<form action="/update" method="post">
+<!-- Keep the selected book's ID hidden so it can be sent with the updated information. -->
+    <input type="hidden" name="id" value="<%= book.id %>">
+    
+    <label for="rating">Rating</label>
+    <input type="number" id="rating" name="rating" min="1" max="5" value="<%= book.rating %>">
+
+    <label for="review">Review:</label>
+    <textarea id="review" name="review"><%= book.review %></textarea>
+
+    <label for="numberOfReads">Number of Reads:</label>
+    <input type="number" id="numberOfReads" name="numberOfReads" min="0" value="<%= book.number_of_reads %>">
+
+    <label for="numberOfListens">Number of Listens:</label>
+    <input type="number" id="numberOfListens" name="numberOfListens" min="0" value="<%= book.number_of_listens %>">
+
+    <button type="submit">Save Changes</button>
+</form>
