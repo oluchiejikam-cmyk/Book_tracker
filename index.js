@@ -34,6 +34,41 @@ const result = await db.query("SELECT * FROM books ORDER BY title ASC");
     });
 });
 
+// Receive the user's selected sorting option from the sorting form.
+app.get("/sort", async (req,res) => {
+
+// Get the sorting option selected by the user from the URL query.
+    const sort = req.query.sort;
+// Match the user's selection to a safe SQL sorting expression.
+    const sortOptions = {
+        title: "title ASC",
+        rating: "rating DESC",
+        publication_year: "publication_year DESC",
+        number_of_reads: "number_of_reads DESC",
+        number_of_listens: "number_of_listens DESC"
+    };
+
+// Get the SQL sorting expression that matches the user's selection.
+    const orderBy = sortOptions[sort];
+
+// Check whether the selected sorting option is valid.
+    if (!orderBy) {
+        return res.send("Invalid sorting option.");
+    }
+
+// Retrieve the books from the database using the selected sorting order.
+    const result = await db.query(
+        `SELECT * FROM books ORDER BY ${orderBy}`
+    );
+
+// Send the sorted books to the EJS page.
+    res.render("index.ejs", {
+        books: result.rows
+    });
+
+});
+
+
 // Receives the book title and ISBN submitted from the form.
 app.post("/add", async (req, res) => {
 // Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
@@ -119,16 +154,13 @@ await db.query(query, [
 app.post("/delete", async (req, res) => {
 // Get the selected book's ID from the submitted form data.
     const id = req.body.id;
-
 // Delete the selected book from the database.
     const query = `
     DELETE FROM books
     WHERE id = $1
     `;
-
 // Execute the DELETE query using the selected book's ID.
     await db.query(query, [id]);
-
 // Return to the home page after the book has been successfully deleted.
     res.redirect("/")
 });
