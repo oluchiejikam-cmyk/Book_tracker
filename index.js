@@ -22,19 +22,31 @@ db.connect();
 // Allows Express to read data submitted through HTML forms.
 app.use(express.urlencoded({ extended: true}));
 
-// Home route: gets the saved books from the database and displays them on the page.
+// Serve CSS and other static files from the public folder.
+app.use(express.static("public"));
+
+// (HOME ROUTE) gets the saved books from the database and displays them on the page.
 app.get("/", async (req, res) => {
+// Get the success message sent through the URL query parameter.
+    const message = req.query.message;
 
+    try{
 // Retrieve all books currently stored in the books table.
-const result = await db.query("SELECT * FROM books ORDER BY title ASC");
+    const result = await db.query("SELECT * FROM books ORDER BY title ASC");
 
-// Pass the retrieved books to the EJS template so they can be displayed on the page.
+// Pass the retrieved books and success message to the EJS template.
     res.render("index.ejs", {
-        books: result.rows
+        books: result.rows,
+        message: message
     });
+
+    } catch (err) {
+        console.log(err);
+    }
+
 });
 
-// Receive the user's selected sorting option from the sorting form.
+// (SORT ROUTE) Receive the user's selected sorting option from the sorting form.
 app.get("/sort", async (req,res) => {
 
 // Get the sorting option selected by the user from the URL query.
@@ -56,7 +68,8 @@ app.get("/sort", async (req,res) => {
         return res.send("Invalid sorting option.");
     }
 
-// Retrieve the books from the database using the selected sorting order.
+    try {
+      // Retrieve the books from the database using the selected sorting order.
     const result = await db.query(
         `SELECT * FROM books ORDER BY ${orderBy}`
     );
@@ -64,14 +77,20 @@ app.get("/sort", async (req,res) => {
 // Send the sorted books to the EJS page.
     res.render("index.ejs", {
         books: result.rows
-    });
+    }); 
+
+    } catch (err) {
+// Display the error in the terminal if something goes wrong.
+        console.log(err);
+    }
 
 });
 
-
-// Receives the book title and ISBN submitted from the form.
+// (ADD ROUTE) Receives the book title and ISBN submitted from the form.
 app.post("/add", async (req, res) => {
-// Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
+
+    try {
+       // Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
     const title = req.body.title;
     const isbn = req.body.isbn;
     const rating = req.body.rating;
@@ -83,6 +102,11 @@ app.post("/add", async (req, res) => {
     const response = await axios.get(
         `https://openlibrary.org/search.json?q=${isbn}`
     );
+
+// Check whether Open Library returned at least one book.
+    if (response.data.docs.length === 0) {
+        return res.send("Book not found. Please check the ISBN and try again.");
+    }
 
 // Get the author's name from the first book result returned by the API.
     const author = response.data.docs[0].author_name[0];
@@ -97,10 +121,18 @@ app.post("/add", async (req, res) => {
     await db.query(query, values);
 
 // Send a confirmation message to the browser after the book has been successfully added to the database.
-    res.send("Book added")
+    res.redirect("/?message=Book%20added%20successfully");
+
+    } catch (err) {
+// Display the error in the terminal if something goes wrong.
+        console.log(err);
+
+// Send a message to the browser if something goes wrong.
+        res.send("Something went wrong while adding the book.");
+    }
 });
 
-// Receive the ID of the book selected for editing from the form.
+// (EDIT ROUTE) Receive the ID of the book selected for editing from the form.
 app.post("/edit", async (req, res) => {
 // Get the selected book's ID from the submitted form data.
     const id = req.body.id;
@@ -116,7 +148,7 @@ app.post("/edit", async (req, res) => {
     });
 });
 
-// Receive the updated information submitted from the edit form.
+// (UPDATE ROUTE) Receive the updated information submitted from the edit form.
 app.post("/update", async (req, res) => {
 
 // Get the ID of the book being updated from the submitted form data.
@@ -151,6 +183,7 @@ await db.query(query, [
     res.redirect("/");
 });
 
+// (DELETE ROUTE)
 app.post("/delete", async (req, res) => {
 // Get the selected book's ID from the submitted form data.
     const id = req.body.id;

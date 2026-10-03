@@ -3,12 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>My Book Tracker</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <h1>My Book Tracker</h1>
 
-<!-- Provide a form for adding a new book and its personal tracking information. -->
+    <% if (message) { %>
+        <p><%= message %></p>
+
+    <% } %>
+
+    <!-- Section for adding a new book -->
+    <section>
+        <!-- Provide a form for adding a new book and its personal tracking information. -->
     <form action="/add" method="post">
         <label for="title">Book Title:</label>
         <input type="text" id="title" name="title">
@@ -30,8 +38,11 @@
 
         <button type="submit">Add Book</button>
     </form>
-
-<!-- Provide a form for choosing how the books should be sorted.  -->
+    </section>
+    
+    <!-- Section for sorting books -->
+    <section>
+        <!-- Provide a form for choosing how the books should be sorted.  -->
     <form action="/sort" method="get">
         <label for="sort">Sort by:</label>
 
@@ -45,20 +56,25 @@
 
         <button type="submit">Sort</button>
     </form>
+    </section>
 
-    <!-- Display each book's information and provide an option to edit and delete it. -->
+    <!-- Section for displaying saved books -->
+    <section>
+        <!-- Display each book's information and provide an option to edit and delete it. -->
      <% for (let book of books) { %>
-
         <h2><%= book.title %></h2>
         <p><%= book.author %> </p>
-        <p>Rating: <%= book.rating %>5</p>
+        <p>Rating: <%= book.rating %></p>
         <p>Number of Reads: <%= book.number_of_reads %></p>
         <p>Number of Listens: <%= book.number_of_listens %></p>
 
     <!-- Display the book cover using the cover URL saved in the database. -->
         <img src="<%= book.book_cover %>" alt="<%= book.title %> cover">
-    
-    <!-- Create forms for each book so the book's ID can be sent to the edit and delete routes when their buttons are clicked. -->
+    </section>
+
+    <!-- Section for displaying saved books and their edit/delete actions -->
+    <section>
+        <!-- Provide Edit and Delete actions for each book -->
     <form action="/edit" method="post">
         <input type="hidden" name="id" value="<%= book.id %>">
         <button>Edit</button>
@@ -68,8 +84,15 @@
         <input type="hidden" name="id" value="<%= book.id %>">
         <button>Delete</button>
     </form>
-        
-     <% } %>
+    <% } %>
+    </section>
+    
+    <script>
+        // Remove the message from the URL after the page has loaded.
+        if (window.location.search) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+     </script>
 </body>
 </html>
 
