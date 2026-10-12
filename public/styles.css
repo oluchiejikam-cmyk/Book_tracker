@@ -1,0 +1,96 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f7f5f2;
+    color: #3d3530;
+}
+
+.page-layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+    display: flex;
+}
+
+.sidebar {
+    width: 220px;
+    background-color: #eeeae2;
+    color: #3d3530;
+    padding: 30px 20px;
+    min-height: 100vh;
+}
+
+.sidebar p {
+    margin: 20px 0;
+    font-size: 15px;
+}
+
+.main-content {
+    flex: 1;
+}
+
+/* Arrange the saved books in a grid */
+.books-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+/* Style each individual book card */
+.book-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Set a consistent size for book covers */
+.book-card img {
+    width: 160px;
+    height: auto;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.book-title {
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    min-height: 48px;
+}
+
+.book-author {
+    font-size: 14px;
+    color: #777;
+    margin: 0 0 15px 0;
+}
+
+.book-info {
+    font-size: 14px;
+    margin: 6px 0;
+}
+
+.book-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.book-card form {
+    display: inline-block;
+    margin: 4px 4px 4px 0;
+}
+
+.book-card button {
+    padding: 5px 10px;
+    border: 1px solid #8a7a6a;
+    border-radius: 5px;
+    background-color: #f7f5f2;
+    cursor: pointer;
+}
+
+.add-book-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}

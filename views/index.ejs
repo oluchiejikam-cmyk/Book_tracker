@@ -4,88 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Book Tracker</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <h1>My Book Tracker</h1>
 
-    <% if (message) { %>
-        <p><%= message %></p>
+    <div class="page-layout">
+        <aside class="sidebar">
+            <h2>My Library</h2>
 
-    <% } %>
+            <p>All Books</p>
+            <p>Add Books</p>
+            <p>Sort Books</p>
+        </aside>
 
-    <!-- Section for adding a new book -->
-    <section>
-        <!-- Provide a form for adding a new book and its personal tracking information. -->
-    <form action="/add" method="post">
-        <label for="title">Book Title:</label>
-        <input type="text" id="title" name="title">
+    <main class="main-content">
+            <h1>My Book Tracker</h1>  
 
-        <label for="isbn">ISBN:</label>
-        <input type="text" id="isbn" name="isbn">
+                <% if (message) { %>
+            <p><%= message %></p>
 
-        <label for="rating">Rating:</label>
-        <input type="number" id="rating" name="rating" min="1" max="5">
+        <% } %>
 
-        <label for="review">Review:</label>
-        <textarea id="review" name="review"></textarea>
+        <!-- Section for adding a new book -->
+        <section class="add-book-section">
+            <!-- Provide a form for adding a new book and its personal tracking information. -->
+        <form action="/add" method="post">
+            <label for="title">Book Title:</label>
+            <input type="text" id="title" name="title">
 
-        <label for="numberOfReads">Number of Reads:</label>
-        <input type="number" id="numberOfReads" name="numberOfReads" min="0">
+            <label for="isbn">ISBN:</label>
+            <input type="text" id="isbn" name="isbn">
 
-        <label for="numberOfListens">Number of Listens:</label>
-        <input type="number" id="numberOfListens" name="numberOfListens" min="0">
+            <label for="rating">Rating:</label>
+            <input type="number" id="rating" name="rating" min="1" max="5">
 
-        <button type="submit">Add Book</button>
-    </form>
-    </section>
-    
-    <!-- Section for sorting books -->
-    <section>
-        <!-- Provide a form for choosing how the books should be sorted.  -->
-    <form action="/sort" method="get">
-        <label for="sort">Sort by:</label>
+            <label for="review">Review:</label>
+            <textarea id="review" name="review"></textarea>
 
-        <select id="sort" name="sort">
-            <option value="title">Title</option>
-            <option value="rating">Rating</option>
-            <option value="publication_year">Publication Year</option>
-            <option value="number_of_reads">Number of Reads</option>
-            <option value="number_of_listens">Number of Listens</option>
-        </select>
+            <label for="numberOfReads">Number of Reads:</label>
+            <input type="number" id="numberOfReads" name="numberOfReads" min="0">
 
-        <button type="submit">Sort</button>
-    </form>
-    </section>
+            <label for="numberOfListens">Number of Listens:</label>
+            <input type="number" id="numberOfListens" name="numberOfListens" min="0">
 
-    <!-- Section for displaying saved books -->
-    <section>
+            <button type="submit">Add Book</button>
+        </form>
+        </section>
+
+            <!-- Section for sorting books -->
+        <section class="sort-section">
+            <!-- Provide a form for choosing how the books should be sorted.  -->
+        <form action="/sort" method="get">
+            <label for="sort">Sort by:</label>
+
+            <select id="sort" name="sort">
+                <option value="title">Title</option>
+                <option value="rating">Rating</option>
+                <option value="publication_year">Publication Year</option>
+                <option value="number_of_reads">Number of Reads</option>
+                <option value="number_of_listens">Number of Listens</option>
+            </select>
+
+            <button type="submit">Sort</button>
+        </form>
+        </section>
+
+        <!-- Section for displaying saved books -->
+        <section class="books-section">
         <!-- Display each book's information and provide an option to edit and delete it. -->
-     <% for (let book of books) { %>
-        <h2><%= book.title %></h2>
-        <p><%= book.author %> </p>
-        <p>Rating: <%= book.rating %></p>
-        <p>Number of Reads: <%= book.number_of_reads %></p>
-        <p>Number of Listens: <%= book.number_of_listens %></p>
+        <% for (let book of books) { %>
+            <div class="book-card">
+                <h2 class="book-title"><%= book.title %></h2>
+                <p class="book-author"><%= book.author %> </p>
+                <p class="book-info">Rating: <%= book.rating %>/5</p>
+                <p class="book-info">Number of Reads: <%= book.number_of_reads %></p>
+                <p class="book-info">Number of Listens: <%= book.number_of_listens %></p>
 
-    <!-- Display the book cover using the cover URL saved in the database. -->
-        <img src="<%= book.book_cover %>" alt="<%= book.title %> cover">
-    </section>
+            <!-- Display the book cover using the cover URL saved in the database. -->
+                <img src="<%= book.book_cover %>" alt="<%= book.title %> cover">
 
-    <!-- Section for displaying saved books and their edit/delete actions -->
-    <section>
-        <!-- Provide Edit and Delete actions for each book -->
-    <form action="/edit" method="post">
-        <input type="hidden" name="id" value="<%= book.id %>">
-        <button>Edit</button>
-    </form>
+                <div class="book-actions">
+                    <!-- Provide Edit and Delete actions for each book -->
+                <form action="/edit" method="post">
+                    <input type="hidden" name="id" value="<%= book.id %>">
+                    <button>Edit</button>
+                </form>
 
-    <form action="/delete" method="post">
-        <input type="hidden" name="id" value="<%= book.id %>">
-        <button>Delete</button>
-    </form>
-    <% } %>
-    </section>
+                <form action="/delete" method="post">
+                    <input type="hidden" name="id" value="<%= book.id %>">
+                    <button>Delete</button>
+                </form>
+                </div>
+
+            </div>
+            <% } %>
+
+        </section>
+    </main>  
+        
+    
+    
+  
     
     <script>
         // Remove the message from the URL after the page has loaded.

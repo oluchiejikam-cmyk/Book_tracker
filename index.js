@@ -98,9 +98,9 @@ app.post("/add", async (req, res) => {
     const numberOfReads = req.body.numberOfReads;
     const numberOfListens = req.body.numberOfListens;
 
-// Send a GET request to the Open Library API using the ISBN submitted by the user.
+// Send a GET request to the Open Library Search API using the ISBN submitted by the user.
     const response = await axios.get(
-        `https://openlibrary.org/search.json?q=${isbn}`
+        `https://openlibrary.org/search.json?q=${isbn}&fields=author_name,first_publish_year,cover_i&limit=5`
     );
 
 // Check whether Open Library returned at least one book.
@@ -110,8 +110,14 @@ app.post("/add", async (req, res) => {
 
 // Get the author's name from the first book result returned by the API.
     const author = response.data.docs[0].author_name[0];
-// Create the URL for the book cover using the ISBN provided by the user.
-    const bookCover = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
+// Find the first search result that has a cover ID.
+    const coverId = response.data.docs.find(book => book.cover_i)?.cover_i;
+
+// Create the book cover URL using the cover ID from Open Library.
+// If no cover ID is available, save null instead.
+    const bookCover = coverId 
+    ?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+    : null;
 // Get the first publication year from the first book result returned by the API.
     const publicationYear = response.data.docs[0].first_publish_year;
 
