@@ -1,2 +1,4 @@
 node_modules/
 .env
+# Keep uploaded test images out of GitHub
+public/uploads/

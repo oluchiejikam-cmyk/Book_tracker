@@ -2,10 +2,24 @@ import express from "express";
 import pg from "pg";
 import axios from "axios";
 import dotenv from "dotenv";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
 const app = express();
+
+// Define the directory for uploaded book covers.
+const uploadDirectory = path.join(
+    process.cwd(),
+    "public",
+    "uploads",
+    "covers"
+);
+
+// Create the directory if it doesn't exist.
+fs.mkdirSync(uploadDirectory, { recursive: true});
 
 // Create a connection to the postgreSQL database where our book data will be stored.
 const db = new pg.Client({
@@ -18,6 +32,41 @@ const db = new pg.Client({
 
 // Open the connection to PostgreSQL.
 db.connect();
+
+// Configure where and how Multer saves uploaded images
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDirectory);
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        cb(null, uniqueName);
+    }
+});
+
+// Check whether the uploaded file is an accepted image type.
+function fileFilter(req, file, cb) {
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error("Only JPEG, PNG, and WebP images are allowed"));
+    }
+}
+
+// Configure Multer to use our storage settings and file filter.
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    }
+});
 
 // Allows Express to read data submitted through HTML forms.
 app.use(express.urlencoded({ extended: true}));
@@ -203,6 +252,84 @@ app.post("/delete", async (req, res) => {
 // Return to the home page after the book has been successfully deleted.
     res.redirect("/")
 });
+
+// (UPLOAD COVER ROUTE) Receive an uploaded cover image
+app.post("/upload-cover", 
+
+// FIRST HANDLER: process the uploaded image.
+    (req, res, next) => {
+        upload.single("cover")(req, res, (err) => {
+        //  Handle errors that occur during file upload.
+            if (err) {
+                return res.status(400).send(err.message);
+            }
+        // Continue to the second handler if upload succeeds.
+            next();
+    });
+}, 
+
+// SECOND HANDLER: Validate the request and update the database.
+    async (req, res) => {
+
+    // Check whether a cover image was uploaded.
+        if (!req.file) {
+            return res.status(400).send("Please select a cover image to upload.");
+        }
+    // Get the ID of the book whose cover is being uploaded.
+        const id = req.body.id;
+
+    // Check that a book ID was provided.
+        if (!id) {
+            return res.status(400).send("Book ID is missing.");
+        }
+
+    // Get the path of the uploaded cover image.
+        const bookCover = `/uploads/covers/${req.file.filename}`;
+
+    try {
+    // Check whether a book with this ID exists in the database.
+        const bookResult = await db.query(
+            "SELECT id FROM books WHERE id = $1",
+            [id]
+        );
+
+    // Stop if no book matches the submitted ID.
+        if (bookResult.rows.length === 0) {
+            return res.status(404).send("Book not found.");
+        }
+
+    // Update the selected book's cover path in the database.
+        const updateResult = await db.query(
+            "UPDATE books SET book_cover = $1 WHERE id = $2",
+            [bookCover, id]
+        );
+
+    // Return to the book collection after updating the cover.
+        res.redirect("/");
+
+    } catch (error) {
+    // Log the error so we can investigate what went wrong.
+        console.error("Error updating book cover:", error);
+
+    // Remove the uploaded image if the database update fails.
+        if (req.file) {
+            fs.unlink(
+                req.file.path,
+                (fileError) => {
+                    if (fileError) {
+                        console.error("Error deleting uploaded cover:", fileError);
+                    }
+                }
+            );
+        }
+
+    //  Tell the user that the cover could not be saved.
+        res.status(500).send(
+            "Unable to update the book cover. Please try again."
+        );
+    } 
+}
+);
 
 app.listen(3000, () => {
     console.log("server running on port 3000.");

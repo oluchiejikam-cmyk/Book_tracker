@@ -81,7 +81,30 @@
                 <p class="book-info">Number of Listens: <%= book.number_of_listens %></p>
 
             <!-- Display the book cover using the cover URL saved in the database. -->
+             <% if (book.book_cover) { %>
                 <img src="<%= book.book_cover %>" alt="<%= book.title %> cover">
+             <% } else { %>
+            <%# Display a placeholder when no cover is available. %>
+                <div class="book-cover-placeholder">
+                    <span>No cover available</span>
+                </div>
+             <% } %>
+                
+             <!-- Form for uploading a custom cover image for a specific book. -->
+                <form action="/upload-cover" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="id" value="<%= book.id %>">
+
+                    <label for="cover-<%= book.id %>">Upload cover:</label>
+                    <input 
+                    type="file"
+                    id="cover-<%= book.id %>"
+                    name="cover"
+                    accept="image/jpeg, image/png, image/webp"
+                    required
+                    >
+
+                    <button type="submit">Upload Cover</button>
+                </form>
 
                 <div class="book-actions">
                     <!-- Provide Edit and Delete actions for each book -->
