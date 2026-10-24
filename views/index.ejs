@@ -20,34 +20,46 @@
     <main class="main-content">
             <h1>My Book Tracker</h1>  
 
-                <% if (message) { %>
-            <p><%= message %></p>
+                <% if (typeof message !== "undefined" && message) { %>
+                    <p><%= message %></p>
 
-        <% } %>
+                <% } %>
 
         <!-- Section for adding a new book -->
         <section class="add-book-section">
             <!-- Provide a form for adding a new book and its personal tracking information. -->
-        <form action="/add" method="post">
-            <label for="title">Book Title:</label>
-            <input type="text" id="title" name="title">
+        <form action="/add" method="post" class="add-book-form">
+            <div class="form-field">
+                <label for="title">Book Title:</label>
+                <input type="text" id="title" name="title">
+            </div>
+            
+            <div>
+                <label for="isbn">ISBN:</label>
+                <input type="text" id="isbn" name="isbn">
+            </div>
 
-            <label for="isbn">ISBN:</label>
-            <input type="text" id="isbn" name="isbn">
-
-            <label for="rating">Rating:</label>
+            <div>
+                <label for="rating">Rating:</label>
             <input type="number" id="rating" name="rating" min="1" max="5">
+            </div>
+            
+            <div>
+                <label for="review">Review:</label>
+                <textarea id="review" name="review"></textarea>
+            </div>
 
-            <label for="review">Review:</label>
-            <textarea id="review" name="review"></textarea>
-
-            <label for="numberOfReads">Number of Reads:</label>
-            <input type="number" id="numberOfReads" name="numberOfReads" min="0">
-
-            <label for="numberOfListens">Number of Listens:</label>
-            <input type="number" id="numberOfListens" name="numberOfListens" min="0">
-
-            <button type="submit">Add Book</button>
+            <div>
+                <label for="numberOfReads">Number of Reads:</label>
+                <input type="number" id="numberOfReads" name="numberOfReads" min="0">
+            </div>
+                
+            <div>
+                <label for="numberOfListens">Number of Listens:</label>
+                <input type="number" id="numberOfListens" name="numberOfListens" min="0">
+            </div>
+            
+            <button type="submit" class="add-book-button">Add Book</button>
         </form>
         </section>
 

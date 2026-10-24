@@ -141,38 +141,43 @@ app.post("/add", async (req, res) => {
     try {
        // Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
     const title = req.body.title;
-    const isbn = req.body.isbn;
-    const rating = req.body.rating;
-    const review = req.body.review;
-    const numberOfReads = req.body.numberOfReads;
-    const numberOfListens = req.body.numberOfListens;
+    const isbn = req.body.isbn || null;
+    const rating = req.body.rating || null;
+    const review = req.body.review || null;
+    const numberOfReads = req.body.numberOfReads || null;
+    const numberOfListens = req.body.numberOfListens || null;
+
+// Search using the ISBN if provided; otherwise, search using the title.
+    const searchTerm = isbn || title;
 
 // Send a GET request to the Open Library Search API using the ISBN submitted by the user.
     const response = await axios.get(
-        `https://openlibrary.org/search.json?q=${isbn}&fields=author_name,first_publish_year,cover_i&limit=5`
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(searchTerm)}&fields=title,author_name,first_publish_year,cover_i&limit=5`
     );
 
-// Check whether Open Library returned at least one book.
-    if (response.data.docs.length === 0) {
-        return res.send("Book not found. Please check the ISBN and try again.");
+//  Get the first book returned by Open Library. If no book is found, use an empty object instead. 
+    const book = response.data.docs[0] || {};
+
+// Get the available book information from Open Library, using null for any missing details.
+    const bookTitle = title || book.title || null;
+
+// Check that a book title is available before saving the book to the database.
+    if (!bookTitle) {
+        return res.send("Please enter a book title or provide a valid ISBN.");
     }
+    
+    const author = book.author_name?.[0] || null;
+    const coverId = book.cover_i || null;
+    const publicationYear = book.first_publish_year || null;
 
-// Get the author's name from the first book result returned by the API.
-    const author = response.data.docs[0].author_name[0];
-// Find the first search result that has a cover ID.
-    const coverId = response.data.docs.find(book => book.cover_i)?.cover_i;
-
-// Create the book cover URL using the cover ID from Open Library.
-// If no cover ID is available, save null instead.
+// Create the book cover URL using the cover ID from Open Library. If no cover ID is available, save null instead.
     const bookCover = coverId 
     ?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
     : null;
-// Get the first publication year from the first book result returned by the API.
-    const publicationYear = response.data.docs[0].first_publish_year;
 
 // Insert the book information and personal tracking data into the books table.
     const query = "INSERT INTO books (title, isbn, author, book_cover, publication_year, rating, review, number_of_reads, number_of_listens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
-    const values = [title, isbn, author, bookCover, publicationYear, rating, review, numberOfReads, numberOfListens];
+    const values = [bookTitle, isbn, author, bookCover, publicationYear, rating, review, numberOfReads, numberOfListens];
     await db.query(query, values);
 
 // Send a confirmation message to the browser after the book has been successfully added to the database.
