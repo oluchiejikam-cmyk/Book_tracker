@@ -139,9 +139,9 @@ app.get("/sort", async (req,res) => {
 app.post("/add", async (req, res) => {
 
     try {
-       // Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
-    const title = req.body.title;
-    const isbn = req.body.isbn || null;
+// Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
+    const title = req.body.title?.trim();
+    const isbn = req.body.isbn?.trim() || null;
     const rating = req.body.rating || null;
     const review = req.body.review || null;
     const numberOfReads = req.body.numberOfReads || null;
@@ -150,45 +150,73 @@ app.post("/add", async (req, res) => {
 // Search using the ISBN if provided; otherwise, search using the title.
     const searchTerm = isbn || title;
 
-// Send a GET request to the Open Library Search API using the ISBN submitted by the user.
-    const response = await axios.get(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(searchTerm)}&fields=title,author_name,first_publish_year,cover_i&limit=5`
-    );
+// Set default values in case Open Library cannot provide book details.
+    let book = {};
+    let bookTitle = title;
+    let author = null;
+    let coverId = null;
+    let publicationYear = null; 
 
-//  Get the first book returned by Open Library. If no book is found, use an empty object instead. 
-    const book = response.data.docs[0] || {};
+// Only search Open Library when a title or ISBN has been provided.
+        if (searchTerm) {
+            try{
+            // Request book information from Open Library.
+                const response = await axios.get(
+                    `https://openlibrary.org/search.json?q=${encodeURIComponent(searchTerm)}&fields=title,author_name,first_publish_year,cover_i&limit=5`,
+                    { timeout: 5000 }
+                );
 
-// Get the available book information from Open Library, using null for any missing details.
-    const bookTitle = title || book.title || null;
+            // Use the first search result, if one is available.
+                book = response.data.docs[0] || {};
 
-// Check that a book title is available before saving the book to the database.
-    if (!bookTitle) {
-        return res.send("Please enter a book title or provide a valid ISBN.");
-    }
-    
-    const author = book.author_name?.[0] || null;
-    const coverId = book.cover_i || null;
-    const publicationYear = book.first_publish_year || null;
+            // Use the manually entered title first, then the API title.
+                bookTitle = title || book.title || null;
+
+            // Get other available book details.
+                author = book.author_name?.[0] || null;
+                coverId = book.cover_i || null;
+                publicationYear = book.first_publish_year || null;
+            } catch (err) {
+            // Log lookup errors but allow a manually titled book to be saved.
+                console.log("Open Library lookup failed:", err.message);
+            }
+        }
+// A title is required if Open Library did not provide one.
+        if (!bookTitle) {
+            return res.send("We couldn't find that ISBN. Please enter the book title as well.");
+        }
 
 // Create the book cover URL using the cover ID from Open Library. If no cover ID is available, save null instead.
-    const bookCover = coverId 
-    ?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
-    : null;
+        const bookCover = coverId 
+        ?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+        : null;
 
 // Insert the book information and personal tracking data into the books table.
-    const query = "INSERT INTO books (title, isbn, author, book_cover, publication_year, rating, review, number_of_reads, number_of_listens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
-    const values = [bookTitle, isbn, author, bookCover, publicationYear, rating, review, numberOfReads, numberOfListens];
-    await db.query(query, values);
+        const query = 
+            `INSERT INTO books 
+            (title, isbn, author, book_cover, publication_year, rating, review, number_of_reads, number_of_listens) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
 
-// Send a confirmation message to the browser after the book has been successfully added to the database.
-    res.redirect("/?message=Book%20added%20successfully");
+        const values = [
+            bookTitle,
+            isbn,
+            author,
+            bookCover,
+            publicationYear,
+            rating,
+            review,
+            numberOfReads,
+            numberOfListens
+        ];
 
+        await db.query(query, values);
+
+// Return to the home page after the book has been saved.
+        res.redirect("/?message=Book%20added%20successfully");
     } catch (err) {
-// Display the error in the terminal if something goes wrong.
-        console.log(err);
-
-// Send a message to the browser if something goes wrong.
-        res.send("Something went wrong while adding the book.");
+        // Log database or other unexpected errors.
+        console.error("Error adding book:", err);
+        res.status(500).send("Something went wrong while adding the book.")
     }
 });
 
