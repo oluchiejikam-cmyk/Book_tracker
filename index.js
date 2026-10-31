@@ -21,14 +21,21 @@ const uploadDirectory = path.join(
 // Create the directory if it doesn't exist.
 fs.mkdirSync(uploadDirectory, { recursive: true});
 
-// Create a connection to the postgreSQL database where our book data will be stored.
-const db = new pg.Client({
-    user: "postgres",
-    host: "localhost",
-    database: "Book_Tracker",
-    password: process.env.DB_PASSWORD,
-    port: 5432,
-});
+// Connect to Render's database online, or local PostgreSQL on your computer.
+const db = new pg.Client(
+    process.env.DATABASE_URL
+        ?{
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false },
+        }
+        : {
+            user: "postgres",
+            host: "localhost",
+            database: "Book_Tracker",
+            password: process.env.DB_PASSWORD,
+            port: 5432,
+        }
+);
 
 // Open the connection to PostgreSQL.
 db.connect();
@@ -364,6 +371,8 @@ app.post("/upload-cover",
 }
 );
 
-app.listen(3000, () => {
-    console.log("server running on port 3000.");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`server running on port ${PORT}.`);
 });

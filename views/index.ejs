@@ -103,10 +103,9 @@
              <% } %>
                 
              <!-- Form for uploading a custom cover image for a specific book. -->
-                <form action="/upload-cover" method="post" enctype="multipart/form-data">
+                <form class="cover-upload-form" action="/upload-cover" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="id" value="<%= book.id %>">
 
-                    <label for="cover-<%= book.id %>">Upload cover:</label>
                     <input 
                     type="file"
                     id="cover-<%= book.id %>"
