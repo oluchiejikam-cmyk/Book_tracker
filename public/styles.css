@@ -9,26 +9,14 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 30px;
-    display: flex;
-}
-
-.sidebar {
-    width: 220px;
-    background-color: #eeeae2;
-    color: #3d3530;
-    padding: 30px 20px;
-    min-height: 100vh;
-}
-
-.sidebar p {
-    margin: 20px 0;
-    font-size: 15px;
+    display: block;
 }
 
 .main-content {
-    flex: 1;
+    width: 100%;
+    min-width: 1200px;
+    margin: 0 auto;
     min-width: 0;
-    margin-left: 20px;
 }
 
 /* Arrange the saved books in a grid */
@@ -125,6 +113,44 @@ body {
     cursor: pointer;
 }
 
+/* Collapsible Add Book section */
+.add-book-container {
+    margin-bottom: 16px;
+}
+
+.add-book-container > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 18px;
+    background-color: #66564a;
+    color: white;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.2s ease;
+}
+
+.add-book-container > summary::-webkit-details-marker {
+    display: none;
+}
+
+.add-book-container > summary::before {
+    content: "+";
+    font-size: 19px;
+    font-weight: 400;
+}
+
+.add-book-container[open] > summary::before {
+    content: "−";
+}
+
+.add-book-container > summary:hover {
+    background-color: #514338;
+}
+
 .add-book-section {
     background-color: white;
     padding: 20px;
@@ -133,12 +159,53 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.add-book-button {
+    background-color: #66564a;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.add-book-button:hover {
+    background-color: #514338;
+}
+
 /* Arrange the Add Book form fields in a neat grid */
 .add-book-form {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
     align-items: start;
+}
+
+.add-book-form .tracking-details {
+    grid-column: 1 / -1;
+}
+
+.tracking-heading {
+    grid-column: 1 / -1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #66564a;
+    margin: 8px 0 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e5ded7;
+}
+
+.add-book-form .add-book-button {
+    grid-column: 1 / -1;
+}
+
+.add-book-form input:focus,
+.add-book-form textarea:focus {
+    outline: none;
+    border-color: #8b7565;
+    box-shadow: 0 0 0 2px rgba(139, 117, 101, 0.12);
 }
 
 /* Make form inputs fit inside their grid columns */
@@ -146,6 +213,12 @@ body {
 .add-book-form textarea {
     width: 100%;
     box-sizing: border-box;
+    padding: 9px 10px;
+    border: 1px solid #d8cec5;
+    border-radius: 6px;
+    background-color: #fffdfb;
+    font-size: 14px;
+    color: #3d3530;
 }
 
 /* Keep labels readable and close to their fields */
@@ -167,4 +240,210 @@ body {
 
 .sort-section {
     margin-bottom: 16px;
+}
+
+
+
+/*  RESPONSIVE DESIGN */
+/* Tablets and smaller screens */
+@media screen and (max-width: 768px) {
+
+    .page-layout {
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    .main-content {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .add-book-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .books-section {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Mobile phones */
+@media screen and (max-width: 480px) {
+
+    .page-layout {
+        padding: 8px;
+    }
+
+    .main-content {
+        width: 100%;
+        margin: 12px 0 0;
+    }
+
+    .main-content h1 {
+        font-size: 21px;
+        font-weight: 600;
+        margin: 8px 0 14px;
+    }
+
+    .add-book-section {
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+
+    .book-card form {
+        margin: 4px 0;
+    }
+
+    .book-card form button {
+        padding: 5px 9px;
+        border: 1px solid #d8cec5;
+        border-radius: 5px;
+        background-color: #f7f3ef;
+        color: #514338;
+        font-size: 12px;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .book-card form input[type="file"] {
+        width: 100%;
+        max-width: 100%;
+        font-size: 10px;
+    }
+
+    .book-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 6px;
+    }
+
+    .add-book-container > summary {
+        padding: 6px 10px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .add-book-form {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .add-book-form .form-field {
+        gap: 3px;
+    }
+
+    .add-book-form label {
+        font-size: 12px;
+    }
+
+    .add-book-form input,
+    .add-book-form textarea {
+        padding: 6px;
+        font-size: 13px;
+        height: 32px;
+    }
+
+    .add-book-form textarea {
+        height: 55px;
+    }
+
+    .add-book-form button {
+        grid-column: 1;
+        padding: 7px;
+        font-size: 13px;
+    }
+
+    .sort-section {
+        margin-bottom: 12px;
+    }
+
+    .books-section {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin: 12px 4px;
+    }
+
+    .book-card {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: 75px 1fr;
+        gap: 10px;
+        align-items: start;
+    }
+
+    .book-card .book-details {
+        grid-column: 2;
+        grid-row: 1;
+        min-height: 0;
+    }
+
+    .book-card img, 
+    .book-card .book-cover-placeholder {
+        grid-column: 1;
+        grid-row: 1;
+        width: 75px;
+        height: 105px;
+        object-fit: contain;
+        margin: 0;
+    }
+
+    .book-card .book-title {
+        font-size: 15px;
+        min-height: auto;
+        margin-bottom: 4px;
+    }
+
+    .book-card .book-author {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+    .book-card .book-info {
+        font-size: 11px;
+        margin: 2px 0;
+        line-height: 1.4;
+    }
+
+    .book-card .book-upload-form button {
+        padding: 6px 10px;
+        min-width: 90px;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .book-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+        .book-card .cover-upload-form {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .book-card .cover-upload-form input[type="file"] {
+        width: 100%;
+        max-width: 100%;
+        font-size: 10px;
+    }
+
+    .book-card .cover-upload-form button {
+        padding: 5px 9px;
+        white-space: nowrap;
+    }
+
+
 }

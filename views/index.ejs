@@ -9,15 +9,8 @@
 <body>
 
     <div class="page-layout">
-        <aside class="sidebar">
-            <h2>My Library</h2>
-
-            <p>All Books</p>
-            <p>Add Books</p>
-            <p>Sort Books</p>
-        </aside>
-
-    <main class="main-content">
+       
+        <main class="main-content">
             <h1>My Book Tracker</h1>  
 
                 <% if (typeof message !== "undefined" && message) { %>
@@ -25,43 +18,50 @@
 
                 <% } %>
 
-        <!-- Section for adding a new book -->
-        <section class="add-book-section">
-            <!-- Provide a form for adding a new book and its personal tracking information. -->
-        <form action="/add" method="post" class="add-book-form">
-            <div class="form-field">
-                <label for="title">Book Title:</label>
-                <input type="text" id="title" name="title">
-            </div>
-            
-            <div>
-                <label for="isbn">ISBN:</label>
-                <input type="text" id="isbn" name="isbn">
-            </div>
+        <details class="add-book-container">
+            <summary>Add a New Book</summary>
+                <!-- Section for adding a new book -->
+            <section class="add-book-section">
+                <!-- Provide a form for adding a new book and its personal tracking information. -->
 
-            <div>
-                <label for="rating">Rating:</label>
-            <input type="number" id="rating" name="rating" min="1" max="5">
-            </div>
-            
-            <div>
-                <label for="review">Review:</label>
-                <textarea id="review" name="review"></textarea>
-            </div>
-
-            <div>
-                <label for="numberOfReads">Number of Reads:</label>
-                <input type="number" id="numberOfReads" name="numberOfReads" min="0">
-            </div>
+            <form action="/add" method="post" class="add-book-form">
+                <!-- Essential book information -->
+                <div class="form-field">
+                    <label for="title">Book Title:</label>
+                    <input type="text" id="title" name="title">
+                </div>
                 
-            <div>
-                <label for="numberOfListens">Number of Listens:</label>
-                <input type="number" id="numberOfListens" name="numberOfListens" min="0">
-            </div>
-            
-            <button type="submit" class="add-book-button">Add Book</button>
-        </form>
-        </section>
+                <div>
+                    <label for="isbn">ISBN:</label>
+                    <input type="text" id="isbn" name="isbn">
+                </div>
+
+                <h3 class="tracking-heading">Personal Reading Details (Optional)</h3>
+                <div>
+                    <label for="rating">Rating:</label>
+                <input type="number" id="rating" name="rating" min="1" max="5">
+                </div>
+                
+                <div>
+                    <label for="review">Review:</label>
+                    <textarea id="review" name="review"></textarea>
+                </div>
+
+                <div>
+                    <label for="numberOfReads">Number of Reads:</label>
+                    <input type="number" id="numberOfReads" name="numberOfReads" min="0">
+                </div>
+                    
+                <div>
+                    <label for="numberOfListens">Number of Listens:</label>
+                    <input type="number" id="numberOfListens" name="numberOfListens" min="0">
+                </div>
+                
+                <button type="submit" class="add-book-button">Add Book</button>
+            </form>
+            </section>
+        </details>
+        
 
             <!-- Section for sorting books -->
         <section class="sort-section">
@@ -86,11 +86,15 @@
         <!-- Display each book's information and provide an option to edit and delete it. -->
         <% for (let book of books) { %>
             <div class="book-card">
-                <h2 class="book-title"><%= book.title %></h2>
-                <p class="book-author"><%= book.author %> </p>
-                <p class="book-info">Rating: <%= book.rating %>/5</p>
-                <p class="book-info">Number of Reads: <%= book.number_of_reads %></p>
-                <p class="book-info">Number of Listens: <%= book.number_of_listens %></p>
+                <!-- Book information -->
+                <div class="book-details">
+                    <h2 class="book-title"><%= book.title %></h2>
+                    <p class="book-author"><%= book.author %> </p>
+                    <p class="book-info">Rating: <%= book.rating %>/5</p>
+                    <p class="book-info">Number of Reads: <%= book.number_of_reads %></p>
+                    <p class="book-info">Number of Listens: <%= book.number_of_listens %></p>
+                </div>
+                
 
             <!-- Display the book cover using the cover URL saved in the database. -->
              <% if (book.book_cover) { %>
@@ -114,7 +118,7 @@
                     required
                     >
 
-                    <button type="submit">Upload Cover</button>
+                    <button type="submit">Upload</button>
                 </form>
 
                 <div class="book-actions">
