@@ -81,23 +81,81 @@ app.use(express.urlencoded({ extended: true}));
 // Serve CSS and other static files from the public folder.
 app.use(express.static("public"));
 
+// FUNCTION: Retrieve all books and their community contributions.
+// Calculate community statistics and organize each book's contributions
+// into an array. Allow books to be sorted using the specified order.
+async function getBooks(orderBy = "b.title ASC") {
+    const query = `
+        SELECT
+            b.*,
+        -- Count the number of readers who contributed to each book.
+            COUNT(rc.id)::INTEGER AS contributor_count,
+
+        --  Calculate the average rating given by readers. 
+            ROUND(AVG(rc.rating), 1) AS average_rating,
+
+        -- Calculate the total number of reads and listens across contributors.
+            COALESCE(SUM(rc.number_of_reads), 0)::INTEGER AS total_reads,
+            COALESCE(SUM(rc.number_of_listens), 0)::INTEGER AS total_listens,
+
+        --  Collect each reader's personal experience into a JSON array.
+            COALESCE(
+                JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'id', rc.id,
+                        'reader_name', rc.reader_name,
+                        'rating', rc.rating,
+                        'review', rc.review,
+                        'number_of_reads', rc.number_of_reads,
+                        'number_of_listens', rc.number_of_listens
+                    )
+                ) 
+                
+            -- Exclude empty contribution records for books without readers.
+                FILTER (WHERE rc.id IS NOT NULL),
+                '[]'
+            ) AS contributions
+
+        -- Start with the main books table.
+        FROM books b
+
+        -- Keep all books, even if they have no reader contributions.
+        LEFT JOIN reader_contributions rc
+            ON b.id = rc.book_id
+
+        -- Group all contributions under their respective books.
+        GROUP BY b.id
+
+        -- Sort books using the specified sorting option.
+        ORDER BY ${orderBy}
+    `;
+
+    // Execute the SQL query and retrieve the database results.
+    const result = await db.query(query);
+
+    // Return the retrieved book records to the calling route.  
+    return result.rows;
+}
+
+
 // (HOME ROUTE) gets the saved books from the database and displays them on the page.
 app.get("/", async (req, res) => {
 // Get the success message sent through the URL query parameter.
     const message = req.query.message;
 
     try{
-// Retrieve all books currently stored in the books table.
-    const result = await db.query("SELECT * FROM books ORDER BY title ASC");
+// Retrieve books and their community statistics.
+    const books = await getBooks();
 
 // Pass the retrieved books and success message to the EJS template.
     res.render("index.ejs", {
-        books: result.rows,
+        books: books,
         message: message
     });
 
     } catch (err) {
         console.log(err);
+        res.status(500).send("Unable to load books.")
     }
 
 });
@@ -109,11 +167,11 @@ app.get("/sort", async (req,res) => {
     const sort = req.query.sort;
 // Match the user's selection to a safe SQL sorting expression.
     const sortOptions = {
-        title: "title ASC",
-        rating: "rating DESC",
-        publication_year: "publication_year DESC",
-        number_of_reads: "number_of_reads DESC",
-        number_of_listens: "number_of_listens DESC"
+        title: "b.title ASC",
+        rating: "average_rating DESC",
+        publication_year: "b.publication_year DESC",
+        number_of_reads: "total_reads DESC",
+        number_of_listens: "total_listens DESC"
     };
 
 // Get the SQL sorting expression that matches the user's selection.
@@ -126,18 +184,17 @@ app.get("/sort", async (req,res) => {
 
     try {
       // Retrieve the books from the database using the selected sorting order.
-    const result = await db.query(
-        `SELECT * FROM books ORDER BY ${orderBy}`
-    );
-
+    const result = books = await getBooks(orderBy);
+     
 // Send the sorted books to the EJS page.
     res.render("index.ejs", {
-        books: result.rows
+        books: books
     }); 
 
     } catch (err) {
 // Display the error in the terminal if something goes wrong.
         console.log(err);
+        res.status(500).send("Unable to sort books.")
     }
 
 });
@@ -149,6 +206,13 @@ app.post("/add", async (req, res) => {
 // Get the book title, ISBN, rating, review and number_of_reads from the submitted form data.
     const title = req.body.title?.trim();
     const isbn = req.body.isbn?.trim() || null;
+    const readerName = req.body.readerName?.trim();
+
+// Ensure the reader provides a name before continuing.
+    if (!readerName) {
+        return res.status(400).send("Please enter your name.");
+    }
+
     const rating = req.body.rating || null;
     const review = req.body.review || null;
     const numberOfReads = req.body.numberOfReads || null;
@@ -193,38 +257,102 @@ app.post("/add", async (req, res) => {
             return res.send("We couldn't find that ISBN. Please enter the book title as well.");
         }
 
-// Create the book cover URL using the cover ID from Open Library. If no cover ID is available, save null instead.
-        const bookCover = coverId 
-        ?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
-        : null;
+//  Check whether a book with this ISBN already exists.
+        let existingBook = null;
 
-// Insert the book information and personal tracking data into the books table.
-        const query = 
-            `INSERT INTO books 
-            (title, isbn, author, book_cover, publication_year, rating, review, number_of_reads, number_of_listens) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
+        if (isbn) {
+            const existingByISBN = await db.query(
+                "SELECT id FROM books WHERE isbn = $1 LIMIT 1",
+                [isbn]
+            );
 
-        const values = [
-            bookTitle,
-            isbn,
-            author,
-            bookCover,
-            publicationYear,
+            existingBook = existingByISBN.rows[0] || null;
+        }
+
+// If no book was found by ISBN, check whether its title already exists.
+        if (!existingBook) {
+            const existingByTitle = await db.query(
+                `SELECT id
+                 FROM books
+                 WHERE LOWER(TRIM(title)) = LOWER(TRIM($1))
+                 LIMIT 1`,
+                 [bookTitle]
+            );
+
+            existingBook = existingByTitle.rows[0] || null;
+        }
+
+// Store the ID of the book we found, if it already exists.
+        let bookId;
+
+        if (existingBook) {
+         //  Reuse the ID of the existing book.
+            bookId = existingBook.id;
+
+        } else {
+        // No existing book was found, so create a new book record.
+            const bookCover = coverId
+                ?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+                : null;
+
+            const bookQuery = `
+                INSERT INTO books
+                (title, isbn, author, book_cover, publication_year)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id
+            `;
+
+            const bookValues = [
+                bookTitle,
+                isbn,
+                author,
+                bookCover,
+                publicationYear
+            ];
+
+            const newBook = await db.query(bookQuery, bookValues);
+
+        //  Retrieve the ID generated for the newly inserted book.
+            bookId = newBook.rows[0].id;
+
+        }
+
+// Save the reader's personal experience in the contributions table.
+        const contributionQuery = `
+            INSERT INTO reader_contributions
+            (book_id, reader_name, rating, review, number_of_reads, number_of_listens)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+
+        const contributionValues = [
+            bookId,
+            readerName,
             rating,
             review,
             numberOfReads,
             numberOfListens
         ];
 
-        await db.query(query, values);
+        await db.query(contributionQuery, contributionValues);
 
-// Return to the home page after the book has been saved.
-        res.redirect("/?message=Book%20added%20successfully");
+// Prepare the success message.
+        let successMessage;
+
+        if (existingBook) {
+            successMessage = "Contribution added successfully";
+
+        } else {
+            successMessage = "New book and contribution added successfully";
+        }
+
+// Redirect to the homepage.
+        res.redirect(`/?message=${encodeURIComponent(successMessage)}`);
+
     } catch (err) {
-        // Log database or other unexpected errors.
         console.error("Error adding book:", err);
-        res.status(500).send("Something went wrong while adding the book.")
+        res.status(500).send("Something went wrong while adding the book.");
     }
+
 });
 
 // (EDIT ROUTE) Receive the ID of the book selected for editing from the form.
