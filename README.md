@@ -1,12 +1,14 @@
-# 📚 Book Tracker
+# 📚 Community Book Tracker
 
 ## Project Description
 
-Book Tracker is a web application designed to help users organize and manage a collection of books they have read. It provides a shared space where users can add books, record personal reading experiences, and keep track of their reading and listening activity.
+Community Book Tracker is a web application designed to provide a shared digital bookshelf where readers can discover, contribute to and keep track of books and reading experiences.
 
-The application integrates with the Open Library API to help users retrieve book information using an ISBN or book title. Users can also manually add books when they cannot be found through the search functionality.
+Unlike a traditional personal reading tracker, the application brings readers together around a shared collection. Users can add books, record their personal reading experiences, and contribute ratings, reviews, and reading or listening activity.
 
-**Live Application:** https://book-tracker-fikm.onrender.com
+The application integrates with the Open Library API to retrieve book information using an ISBN or book title. Users can also manually add books when they cannot be found through the search functionality.
+
+**Live Application:** [Community Book Tracker](https://book-tracker-fikm.onrender.com)
 
 ## Features
 
@@ -14,18 +16,22 @@ The application integrates with the Open Library API to help users retrieve book
 - Retrieve available book information, including titles, authors and cover images, through the Open Library API.
 - Manually add books when they cannot be found through the API.
 - Upload custom book cover images.
-- Add personal ratings and reviews.
-- Track the number of times a book has been read or listened to.
+- Maintain a shared community book collection.
+- Contribute personal ratings and reviews to books in the collection.
+- Track individual reading and listening activity.
+- View community contributors associated with each book.
+- Explore individual readers' experiences through an interactive reader-experience modal.
+- View a contributor's rating, review, number of reads and number of listens.
 - Edit personal ratings, reviews, reading counts and listening counts.
 - Delete books from the collection.
 - Sort books by title, rating, publication year, number of reads and number of listens.
-- Store book information in a PostgreSQL database.
+- Store book information and reader contributions in a PostgreSQL database.
 
 ## Technologies Used
 
 - **Node.js:** JavaScript runtime used to run the server.
 - **Express.js:** Web framework used to handle application routes and server requests.
-- **PostgreSQL:** Relational database used to store book information.
+- **PostgreSQL:** Relational database used to store book information and reader contributions.
 - **pg (node-postgres):** Connects the Node.js application to PostgreSQL.
 - **EJS:** Templating engine used to generate dynamic HTML pages.
 - **Axios:** HTTP client used to retrieve book information from the Open Library API.
@@ -33,27 +39,27 @@ The application integrates with the Open Library API to help users retrieve book
 - **dotenv:** Loads environment variables from the `.env` file.
 - **HTML:** Provides the structure of the web pages.
 - **CSS:** Styles the application and provides responsive layouts.
-- **JavaScript:** Handles application logic and interactive functionality.
+- **JavaScript:** Handles application logic and interactive frontend functionality.
 
 ## Application Screenshots
 
 ### 1. Home Page
 
-Displays the book collection, including book covers, titles, authors, ratings, reading activity and book management options.
+Displays the shared book collection, including book covers, titles, authors, reading activity, community contributions and book management options.
 
-![Book Tracker Home Page](screenshots/home-page.png)
+![Community Book Tracker Home Page](Screenshots/home-page.png)
 
 ### 2. Add a New Book
 
-Allows users to add books and record optional personal reading details.
+Allows users to add books using the Open Library search functionality or enter book information manually, with optional personal reading details.
 
-![Add a New Book](screenshots/add-book.png)
+![Add a New Book](Screenshots/add-book-reader-experience.png)
 
 ### 3. Edit Book
 
-Allows users to update personal ratings, reviews, number of reads and number of listens.
+Allows users to update their personal ratings, reviews, number of reads and number of listens.
 
-![Edit Book](screenshots/edit-book.png)
+![Edit Book](Screenshots/edit-book.png)
 
 ## Project Structure
 
@@ -61,11 +67,15 @@ Allows users to update personal ratings, reviews, number of reads and number of 
 Book-tracker/
 ├── public/
 │   ├── styles.css
+│   ├── script.js
 │   └── uploads/
-│       └── covers/
 ├── views/
 │   ├── index.ejs
 │   └── edit.ejs
+├── Screenshots/
+│   ├── home-page.png
+│   ├── add-book.png
+│   └── edit-book.png
 ├── index.js
 ├── package.json
 ├── package-lock.json
@@ -81,10 +91,12 @@ Book-tracker/
 - `.gitignore`: Specifies files and folders Git should ignore.
 - `public/`: Contains static frontend assets.
 - `public/styles.css`: Contains the application's styling.
-- `public/uploads/covers/`: Stores uploaded book cover images.
+- `public/script.js`: Handles interactive frontend functionality, including the reader-experience modal.
+- `public/uploads/`: Stores uploaded book cover images locally.
 - `views/`: Contains EJS templates.
 - `views/index.ejs`: Main page for adding and displaying books.
 - `views/edit.ejs`: Page for editing personal book information.
+- `Screenshots/`: Contains screenshots of the application.
 
 ## Installation and Setup
 
@@ -113,7 +125,7 @@ npm install
 
 Create a `.env` file in the project root directory.
 
-For local development, add your PostgreSQL password:
+For local development, configure your PostgreSQL password:
 
 ```env
 DB_PASSWORD=your_postgresql_password
@@ -129,7 +141,7 @@ Open PostgreSQL using pgAdmin and create a database named:
 CREATE DATABASE "Book_Tracker";
 ```
 
-Connect to the new database and create the `books` table using the project's database schema.
+Connect to the new database and create the required tables using the project's database schema.
 
 ### 5. Start the application
 
@@ -147,7 +159,7 @@ The application uses the configured `PORT` environment variable when available.
 
 ## Open Library API Integration
 
-Book Tracker integrates with the Open Library API to retrieve available book information.
+Community Book Tracker integrates with the Open Library API to retrieve available book information.
 
 Users can search for books using an ISBN or book title. The application uses Axios to send HTTP requests and retrieve available book details, including titles, authors and cover information.
 
@@ -160,23 +172,30 @@ API documentation:
 
 ## Database
 
-The application uses PostgreSQL to store book information, including:
+The application uses PostgreSQL to store book information and reader contributions.
+
+Book information includes:
 
 - Book title
 - ISBN
 - Author
 - Publication year
 - Book cover
+
+Reader contribution information includes:
+
+- Reader name
 - Rating
 - Review
 - Number of reads
 - Number of listens
 
-The database table is named `books` and is stored in the `Book_Tracker` database.
+The database stores the information used to display the shared collection and individual reader experiences.
 
 ## Future Improvements
 
-- Add user authentication and individual book collections.
+- Introduce user authentication and individual reader accounts.
+- Allow users to maintain personal book collections.
 - Improve input validation and error handling.
 - Add automated tests.
 
@@ -184,4 +203,4 @@ The database table is named `books` and is stored in the `Book_Tracker` database
 
 **Oluchi Ejikam**
 
-Book Tracker was developed as a capstone project to practise backend development, database management, API integration and frontend web development.
+Community Book Tracker was developed as a full-stack development project to practise backend development, database management, API integration and frontend development while exploring how technology can support shared reading experiences and community engagement.
