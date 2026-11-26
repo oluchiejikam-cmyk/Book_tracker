@@ -36,7 +36,18 @@
                     <input type="text" id="isbn" name="isbn">
                 </div>
 
-                <h3 class="tracking-heading">Personal Reading Details (Optional)</h3>
+                <h3 class="tracking-heading">Your Reading Experience</h3>
+
+                <div class="form-field">
+                    <label for="readerName">Your Name:</label>
+                    <input
+                        type="text"
+                        id="readerName"
+                        name="readerName"
+                        required       
+                        >
+                </div>
+
                 <div>
                     <label for="rating">Rating:</label>
                 <input type="number" id="rating" name="rating" min="1" max="5">
@@ -90,11 +101,43 @@
                 <div class="book-details">
                     <h2 class="book-title"><%= book.title %></h2>
                     <p class="book-author"><%= book.author %> </p>
-                    <p class="book-info">Rating: <%= book.rating %>/5</p>
-                    <p class="book-info">Number of Reads: <%= book.number_of_reads %></p>
-                    <p class="book-info">Number of Listens: <%= book.number_of_listens %></p>
+
+                    <p class="book-info"> <%= book.average_rating !== null
+                        ? `${book.average_rating}/5`
+                        : "Not rated" %>
+                    </p>
+
+                    <p class="book-info">
+                        Shared by <%= book.contributor_count %>
+                        <%= book.contributor_count === 1 ? "reader" : "readers" %>
+                    </p>
+
+                    <p class="book-info">
+                        Total Listens: <%= book.total_listens %>
+                    </p>
                 </div>
-                
+
+            <!-- Display contributors without expanding the book card -->
+             <div class="community-reviews">
+                <p class="contributors-label">Contributors:</p>
+
+                <% for (let contribution of book.contributions) { %>
+
+                    <button
+                        type="button"
+                        class="contributor-link"
+                        data-reader-name="<%= contribution.reader_name %>"
+                        data-rating="<%= contribution.rating ?? '' %>"
+                        data-review="<%= contribution.review || '' %>"
+                        data-reads="<%= contribution.number_of_reads ?? 0 %>"
+                        data-listens="<%= contribution.number_of_listens ?? 0 %>"
+                        title="<%= contribution.review || 'View reader experience' %>"
+                    >
+                        <%= contribution.reader_name %>
+                    </button>
+
+                <% } %>    
+             </div>
 
             <!-- Display the book cover using the cover URL saved in the database. -->
              <% if (book.book_cover) { %>
@@ -138,7 +181,36 @@
             <% } %>
 
         </section>
-    </main>  
+    </main>
+    
+        <!-- Modal for displaying an individual reader's experience -->
+         <div id="readerModal" class="reader-modal">
+
+            <div class="reader-modal-content">
+                <button
+                    type="button"
+                    id="closeReaderModal"
+                    class="close-modal"
+                    aria-label="Close modal"
+                >
+                    &times;
+
+                </button>
+
+                <h2 id="modalReaderName"></h2>
+                <p id="modalRating"></p>
+                <p id="modalReview"></p>
+                <p id="modalReads"></p>
+                <p id="modalListens"></p>
+
+            </div>
+
+         </div>
+
+    <script>
+
+    </script>
+        
         
     
     
@@ -150,6 +222,9 @@
             window.history.replaceState({}, document.title, window.location.pathname);
         }
      </script>
+
+     <!-- Load the frontend JavaScript file -->
+    <script src="/script.js"></script>
 </body>
 </html>
 
